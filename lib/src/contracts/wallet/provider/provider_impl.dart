@@ -10,6 +10,7 @@ import 'package:ton_dart/src/models/models/send_mode.dart';
 import 'package:ton_dart/src/provider/provider.dart';
 import 'package:ton_dart/src/contracts/wallet/utils/utils.dart';
 import 'package:ton_dart/src/contracts/wallet/transaction/transaction_impl.dart';
+import 'package:ton_dart/ton_dart.dart';
 
 mixin VerionedProviderImpl on VersionedWalletTransactionImpl {
   Future<int> getSeqno(TonProvider rpc) async {
@@ -32,8 +33,18 @@ mixin VerionedProviderImpl on VersionedWalletTransactionImpl {
     return BytesUtils.toHexString(readState.publicKey);
   }
 
-  Future<VersionedWalletAccountPrams> readState(TonProvider rpc) async {
+  Future<VersionedWalletAccountPrams> readState(TonProvider rpc,
+      {TonPrivateKey? privateKey}) async {
     final state = await getState(rpc: rpc);
+    if (privateKey != null) {
+      final publicKey = privateKey.toPublicKey().toBytes();
+      final initState = VersionedWalletUtils.buildState(
+          publicKey: publicKey,
+          subWalletId: subWalletId,
+          type: WalletVersion.v4);
+      return VersionedWalletUtils.readState(
+          stateData: state.data ?? initState.data, type: type);
+    }
     return VersionedWalletUtils.readState(stateData: state.data, type: type);
   }
 
@@ -45,7 +56,7 @@ mixin VerionedProviderImpl on VersionedWalletTransactionImpl {
       SendMode sendMode = SendMode.payGasSeparately,
       int? timeout,
       OnEstimateFee? onEstimateFee}) async {
-    final stateData = await readState(rpc);
+    final stateData = await readState(rpc, privateKey: privateKey);
 
     final exMessage = createAndSignTransfer(
         messages: messages,
@@ -70,8 +81,7 @@ mixin VerionedProviderImpl on VersionedWalletTransactionImpl {
       bool? bounce,
       bool bounced = false,
       Cell? body}) async {
-    final stateData = await readState(rpc);
-
+    final stateData = await readState(rpc, privateKey: ownerPrivateKey);
     if (stateData.seqno != 0) {
       throw TonContractException("Account is already active.");
     }
