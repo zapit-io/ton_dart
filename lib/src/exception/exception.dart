@@ -5,7 +5,7 @@ class TonDartPluginException extends BlockchainUtilsException {
   final String message;
   @override
   final Map<String, dynamic>? details;
-  const TonDartPluginException(this.message, {this.details});
+  const TonDartPluginException(this.message, {this.details}) : super(message);
 
   @override
   String toString() {

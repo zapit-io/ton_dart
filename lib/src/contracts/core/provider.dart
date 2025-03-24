@@ -1,4 +1,4 @@
-import 'package:blockchain_utils/exception/rpc_error.dart';
+import 'package:blockchain_utils/exception/exception/rpc_error.dart';
 import 'package:blockchain_utils/utils/utils.dart';
 import 'package:ton_dart/src/address/address.dart';
 import 'package:ton_dart/src/contracts/core/contract.dart';
@@ -35,7 +35,6 @@ mixin ContractProvider on TonWallets {
       throw RPCError(
           message: "Run method failed with exit code ${response.exitCode}",
           errorCode: response.exitCode,
-          data: null,
           request: {
             "method": method,
             "address": address?.toString() ?? this.address.toString(),
